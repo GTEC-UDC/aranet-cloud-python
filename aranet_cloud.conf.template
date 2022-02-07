@@ -1,0 +1,4 @@
+[DEFAULT]
+username=<aranet cloud username>
+password=<aranet cloud password>
+space_name=<aranet cloud space name>
