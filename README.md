@@ -1,6 +1,6 @@
 # aranet-cloud-python
 
-This repository contains the module `aranet_cloud.py`, which allows recovering data of the Aranet4 sensors from the Aranet Cloud.
+This repository contains the module `aranet_cloud.py`, which allows recovering data of the [Aranet4](https://aranet4.com/) sensors from the [Aranet Cloud](https://aranet.cloud).
 
 ## Usage
 
@@ -103,7 +103,7 @@ This function will query the Aranet Cloud, and will return a dictionary object w
     'type': {'id': 'S4V2'}}]}}
 ```
 
-For each object in the `metrics` and the `telemetry` arrays, the value will be returned in the `v` field, and `id` field will indicate the actual metric measured. The possible values of `id` for the `metrics` and `telemetry` data are provided in the module variables `METRICS_DICT` and `TELEMETRY_DICT`, defined as
+For each object in the `metrics` and the `telemetry` arrays, the measured value will be returned in the `v` field, and the `id` field will indicate what is the measure (e.g., CO2, temperature, etc). The possible values of `id` for the `metrics` and `telemetry` data are provided in the module variables `METRICS_DICT` and `TELEMETRY_DICT`, defined as
 
 ```python
 METRICS_DICT = {"1": "temperature",
