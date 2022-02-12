@@ -133,7 +133,7 @@ where
 - `to_time` is the latest time of the sensor data, as a `str` in the ISO 8601 format.
 - `timezone` is the timezone in *hhmm* format of the retrieved data, being *hh* the hours and *mm* the minutes.
 - `metrics` is a list of the metrics identifiers to query.
-- `login_cache_file` is the file to use for storing the Aranet Cloud 
+- `login_cache_file` is the file to use for storing the Aranet Cloud login information.
 
 This function will query the Aranet Cloud, and will return a pandas DataFrame object with the data of the sensor returned by the Aranet Cloud. For example, considering code
 
