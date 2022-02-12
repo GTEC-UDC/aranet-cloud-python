@@ -129,9 +129,9 @@ get_sensor_data(
 where
 - `aranet_conf` is the object containing the Aranet Cloud configuration.
 - `sensor_id` is the sensor id as a `str` or an `int`.
-- `from_time` is the earliest time of the sensor data, as a `str` in the ISO 8601 format, for example `2022-01-31T12:00:00Z`.
-- `to_time` is the latest time of the sensor data, as a `str` in the ISO 8601 format.
-- `timezone` is the timezone in *hhmm* format of the retrieved data, being *hh* the hours and *mm* the minutes.
+- `from_time` is the earliest time of the sensor data, as a `str` in the ISO 8601 format, for example `2022-01-31T12:00:00Z`. **Note:** currently the Aranet Cloud only seems to allow times in UTC, specified with the timezone `Z` specification or without any timezone information, different timezone information will make the request fail.
+- `to_time` is the latest time of the sensor data, as a `str` with the same format as `from_time`.
+- `timezone` is the timezone string of the datetime field of the retrieved data, with format *hhmm*, being *hh* the hours and *mm* the minutes.
 - `metrics` is a list of the metrics identifiers to query.
 - `login_cache_file` is the file to use for storing the Aranet Cloud login information.
 
