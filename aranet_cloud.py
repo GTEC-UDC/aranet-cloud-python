@@ -377,7 +377,8 @@ def get_sensor_data(
     """
     return __get_data(aranet_conf, get_sensor_data2, [],
                       {'sensor_id': sensor_id, 'from_time': from_time,
-                       'to_time': to_time, 'metrics': metrics},
+                       'to_time': to_time, 'metrics': metrics,
+                       'timezone': timezone},
                       login_cache_file)
 
 
