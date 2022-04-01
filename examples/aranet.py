@@ -12,6 +12,19 @@ import sys
 from typing import Any, Dict
 
 
+METRICS_DICT = {
+    "1": "temperature",
+    "2": "humidity",
+    "3": "CO2",
+    "4": "pressure"
+}
+
+TELEMETRY_DICT = {
+    "61": "battery",
+    "62": "rssi"
+}
+
+
 def aranet_extract_data(aranet_data: Dict[str, Any]) -> Dict[str, Any]:
     sensors_dict = {}
 
@@ -21,10 +34,10 @@ def aranet_extract_data(aranet_data: Dict[str, Any]) -> Dict[str, Any]:
         name = sensor["name"]
         sensors_dict[name + "_time"] = sensor["metrics"][0]["t"]
         for metric in sensor["metrics"]:
-            metric_name = aranet_cloud.METRICS_DICT[metric["id"]]
+            metric_name = METRICS_DICT[metric["id"]]
             sensors_dict[name + "_" + metric_name] = metric["v"]
         for telemetry in sensor['telemetry']:
-            telemetry_name = aranet_cloud.TELEMETRY_DICT[telemetry["id"]]
+            telemetry_name = TELEMETRY_DICT[telemetry["id"]]
             sensors_dict[name + "_" + telemetry_name] = telemetry["v"]
 
     return sensors_dict
@@ -53,8 +66,10 @@ def main():
     login_cache_file = data_folder / "aranet_login.json"
     # login_cache_file = None  # disable login cache
 
-    aranet_data = aranet_cloud.get_last_sensor_data(aranet_conf, login_cache_file)
-    print(aranet_data)
+    aranet_data = aranet_cloud.get_sensors_info(
+        aranet_conf, login_cache_file=login_cache_file)
+
+    # print(aranet_data)
     print(json.dumps(aranet_extract_data(aranet_data)))
 
 

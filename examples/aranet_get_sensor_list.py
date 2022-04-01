@@ -27,8 +27,8 @@ def main():
     login_cache_file = data_folder / "aranet_login.json"
     # login_cache_file = None  # disable cache
 
-    aranet_data = aranet_cloud.get_last_sensor_data(
-        aranet_conf, login_cache_file, fields=['name'])
+    aranet_data = aranet_cloud.get_sensors_info(
+        aranet_conf, fields=['name'], login_cache_file=login_cache_file)
 
     # get sensor id and name data
     data = [(d['id'], d['name']) for d in aranet_data['data']['items']]
