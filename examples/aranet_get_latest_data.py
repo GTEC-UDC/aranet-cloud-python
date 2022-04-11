@@ -21,7 +21,7 @@ METRICS_DICT = {
 
 TELEMETRY_DICT = {
     "61": "battery",
-    "62": "rssi"
+    "62": "RSSI"
 }
 
 
