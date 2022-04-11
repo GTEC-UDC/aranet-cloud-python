@@ -403,6 +403,29 @@ Found 2 paired sensors
 Found 0 removed pairings
 ```
 
+
+### `ha_aranet_cloud_conf.py`
+
+Creates [Home Assistant](https://www.home-assistant.io/) configuration files to integrate the Aranet
+sensors by querying the Aranet Cloud.
+
+This script by default creates the following files:
+- `ha_aranet_cloud_main.yaml`: Main configuration file. Creates an `aranet` sensor entity which stores all the sensor data as attributes
+- `ha_aranet_cloud_templates.yaml`: Templates configuration file. Creates a sensor entity for each Aranet sensor retrieving the corresponding attribute from the `aranet` entity.
+- `ha_aranet_cloud_stats.yaml`: Statistics configuration. Creates statistics sensors.
+
+
+### `ha_aranet_mqtt_conf.py`
+
+Creates [Home Assistant](https://www.home-assistant.io/) configuration files to integrate the Aranet
+sensors from the MQTT messages sent by the Aranet base stations.
+
+This script by default creates the following files:
+- `ha_aranet_mqtt_main.yaml`: Main configuration file.
+- `ha_aranet_mqtt_stats.yaml`: Statistics configuration.
+
+
+
 ## License
 
 This code is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
