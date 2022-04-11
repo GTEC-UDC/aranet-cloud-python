@@ -5,9 +5,9 @@
 
 import aranet_cloud
 import argparse
+from collections import Counter
 import dataclasses
 import os
-import pandas
 import pathlib
 import sys
 
@@ -166,19 +166,27 @@ def main():
     # i.e., they are only paired with one base station,
     # e.g., if a sensor is paired to two base stations it will appear twice
     # For this we use the Pandas library
-    df = pandas.DataFrame(sensorPairings)
-    df_dup_mask = df["sensor_name"].duplicated()
-    if df_dup_mask.any():
-        df_dup_names = df.loc[df_dup_mask.array, "sensor_name"]
+    sensors_names_count = Counter([x.sensor_name for x in sensorPairings])
+    sensors_names_dup = [x for (x, y) in sensors_names_count.items() if y > 1]
+    if len(sensors_names_dup) > 0:
         print("Error: the following sensors appear to be paired to more "
               "than one base station", file=sys.stderr)
         print(file=sys.stderr)
-        for s in df_dup_names:
-            df_s = df[df["sensor_name"] == s]
-            print("Sensor {} appears {} times:".format(s, len(df_s)),
+        fmtstr = "{:12} {:10} {:25} {:10} {:20} {:15}"
+        for s in sensors_names_dup:
+            sdata = [x for x in sensorPairings if x.sensor_name == s]
+            print("Sensor {} appears {} times:".format(s, len(sdata)),
                   file=sys.stderr)
             print(file=sys.stderr)
-            print(df_s.to_string(), file=sys.stderr)
+
+            print(fmtstr.format("sensor_name", "sensor_id", "pair_date",
+                                "gw_id", "gw_name", "gw_serial"),
+                  file=sys.stderr)
+            for x in sdata:
+                print(fmtstr.format(x.sensor_name, x.sensor_id, x.pair_date,
+                                    x.gw_id, x.gw_name, x.gw_serial),
+                      file=sys.stderr)
+
             print(file=sys.stderr)
         sys.exit(1)
 
