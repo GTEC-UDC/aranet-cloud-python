@@ -7,6 +7,7 @@ import aranet_cloud
 import argparse
 import os
 import pathlib
+import sys
 
 import ha_aranet_conf
 
@@ -55,7 +56,7 @@ def ha_aranet_cloud_templates_conf(sensors: list[str], file) -> None:
                    format(s.replace(".", ""), metric.customName))
             printf("    unit_of_measurement: \"{}\"".format(metric.unit))
             printf("    value_template: "
-                   "\"{{{{ state_attr('sensor.aranet', '{}_{}'}}}}\"".
+                   "\"{{{{ state_attr("sensor.aranet", "{}_{}"}}}}\"".
                    format(s, metric.customName))
             printf()
 
@@ -76,7 +77,7 @@ def ha_aranet_cloud_stats_conf(sensors: list[str], stats: list[str],
         for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
             for stat in stats:
                 printf("- platform: statistics")
-                printf("  name: \"Aranet stats {} {} {}\"".
+                printf("  name: \"Aranet {} {} stats {}\"".
                        format(s_id, metric.customName, stat))
                 printf("  entity_id: sensor.aranet_{}_{}".
                        format(s_id, metric.customName.lower()))
@@ -93,36 +94,39 @@ def main():
         description="Create Aranet Cloud configuration files "
                     "for Home Assistant.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-m', '--main',
+    parser.add_argument("-m", "--main",
                         default="ha_aranet_cloud_main.yaml",
-                        help='Main sensors configuration file')
-    parser.add_argument('-t', '--templ',
+                        help="Main sensors configuration file")
+    parser.add_argument("-t", "--templ",
                         default="ha_aranet_cloud_templates.yaml",
-                        help='Templates configuration file')
-    parser.add_argument('-s', '--stats',
-                        default="ha_aranet_cloud_stats.yaml",
-                        help='Statistics configuration file')
-    parser.add_argument('-p', '--prog',
+                        help="Templates configuration file")
+    parser.add_argument("-s", "--stats",
+                        default=None,
+                        help="Statistics configuration file")
+    parser.add_argument("--stats-sensors",
+                        default="*",
+                        help="Comma separated list of sensors to include in the statistics (* for all)")
+    parser.add_argument("-p", "--prog",
                         default="python3 aranet_get_latest_data.py",
-                        help='Command to execute')
-    parser.add_argument('--stats-list',
+                        help="Command to execute")
+    parser.add_argument("--stats-list",
                         type=ha_aranet_conf.parse_stats_list,
                         default="mean,value_max,value_min,standard_deviation",
-                        help='Comma separated list of statistical characteristics')
-    parser.add_argument('--stats-max-hours',
+                        help="Comma separated list of statistical characteristics")
+    parser.add_argument("--stats-max-hours",
                         type=int, default=168,
-                        help='Maximum age for calculating statistics')
-    parser.add_argument('--stats-sampling-size',
+                        help="Maximum age for calculating statistics")
+    parser.add_argument("--stats-sampling-size",
                         type=int, default=10080,
-                        help='Maximum number of samples for calculating statistics')
-    parser.add_argument('-i', '--ignore',
+                        help="Maximum number of samples for calculating statistics")
+    parser.add_argument("-i", "--ignore",
                         type=ha_aranet_conf.parse_list, default=None,
-                        help='Comma separated list of sensors names to ignore')
+                        help="Comma separated list of sensors names to ignore")
     args = parser.parse_args()
 
     # Check if files exist
     for f in [args.main, args.templ, args.stats]:
-        if os.path.exists(f):
+        if f is not None and os.path.exists(f):
             print("File \"{}\" already exists, it will be overwritten".format(f))
             if not ha_aranet_conf.ask_continue():
                 return
@@ -148,13 +152,13 @@ def main():
 
     # Get sensors information
     aranet_data = aranet_cloud.get_sensors_info(
-        aranet_conf, fields=['name'],
+        aranet_conf, fields=["name"],
         login_cache_file=login_cache_file)
 
     # get sorted sensor names
     # also filter out sensors indicated in the ignore option
-    sensor_names = sorted([d['name'] for d in aranet_data['data']['items']
-                           if d['name'] not in args.ignore])
+    sensor_names = sorted([d["name"] for d in aranet_data["data"]["items"]
+                           if d["name"] not in args.ignore])
 
     # Create main configuration file
     with open(args.main, "w") as f:
@@ -165,10 +169,25 @@ def main():
         ha_aranet_cloud_templates_conf(sensor_names, f)
 
     # Create statistics configuration file
-    with open(args.stats, "w") as f:
-        ha_aranet_cloud_stats_conf(
-            sensor_names, args.stats_list,
-            args.stats_max_hours, args.stats_sampling_size, f)
+    if args.stats is not None:
+        if args.stats_sensors == "*":
+            stats_sensors_names = sensor_names
+        else:
+            stats_sensors_arg = set(ha_aranet_conf.parse_list(args.stats_sensors))
+            stats_sensors_names = []
+            for sn in stats_sensors_arg:
+                try:
+                    stats_sensors_names.append(
+                        next(x for x in sensor_names if x == sn))
+                except StopIteration:
+                    print("[WARNING] sensor {} does not exist".format(sn),
+                          file=sys.stderr)
+            stats_sensors_names = sorted(stats_sensors_names)
+
+        with open(args.stats, "w") as f:
+            ha_aranet_cloud_stats_conf(
+                stats_sensors_names, args.stats_list,
+                args.stats_max_hours, args.stats_sampling_size, f)
 
 
 if __name__ == "__main__":

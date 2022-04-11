@@ -65,7 +65,7 @@ def ha_aranet_mqtt_stats_conf(sensorPairings: list[SensorPairing],
         for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
             for stat in stats:
                 printf("- platform: statistics")
-                printf("  name: \"Aranet stats {} {} {}\"".
+                printf("  name: \"Aranet {} {} stats {}\"".
                        format(s_id, metric.customName, stat))
                 printf("  entity_id: sensor.aranet_{}_{}".
                        format(s_id, metric.customName.lower()))
@@ -82,25 +82,28 @@ def main():
         description="Create Aranet MQTT configuration files "
                     "for Home Assistant.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('-m', '--main',
+    parser.add_argument("-m", "--main",
                         default="ha_aranet_mqtt_main.yaml",
-                        help='Main sensors configuration file')
-    parser.add_argument('-s', '--stats',
-                        default="ha_aranet_mqtt_stats.yaml",
-                        help='Statistics configuration file')
-    parser.add_argument('--stats-list',
+                        help="Main sensors configuration file")
+    parser.add_argument("-s", "--stats",
+                        default=None,
+                        help="Statistics configuration file")
+    parser.add_argument("--stats-sensors",
+                        default="*",
+                        help="Comma separated list of sensors to include in the statistics (* for all)")
+    parser.add_argument("--stats-list",
                         type=ha_aranet_conf.parse_stats_list,
                         default="mean,value_max,value_min,standard_deviation",
-                        help='Comma separated list of statistical characteristics')
-    parser.add_argument('--stats-max-hours',
+                        help="Comma separated list of statistical characteristics")
+    parser.add_argument("--stats-max-hours",
                         type=int, default=168,
-                        help='Maximum age for calculating statistics')
-    parser.add_argument('--stats-sampling-size',
+                        help="Maximum age for calculating statistics")
+    parser.add_argument("--stats-sampling-size",
                         type=int, default=10080,
-                        help='Maximum number of samples for calculating statistics')
-    parser.add_argument('-i', '--ignore',
+                        help="Maximum number of samples for calculating statistics")
+    parser.add_argument("-i", "--ignore",
                         type=ha_aranet_conf.parse_list, default=None,
-                        help='Comma separated list of sensors names to ignore')
+                        help="Comma separated list of sensors names to ignore")
     args = parser.parse_args()
 
     # Check if files exist
@@ -140,23 +143,23 @@ def main():
         aranet_conf, login_cache_file=login_cache_file)
 
     # Create dict of base station id to base station data
-    aranet_gws_dict = {x['id']: x for x in aranet_gws_data['devices']}
+    aranet_gws_dict = {x["id"]: x for x in aranet_gws_data["devices"]}
 
     # Get list of paired sensors and base stations
     # Filter out sensors indicated in the ignore option
     sensorPairings = [
         SensorPairing(
-            sensor_name=sensor['name'],
-            sensor_id=sensor['id'],
-            pair_date=d['pair'],
-            gw_id=d['id'],
-            gw_name=aranet_gws_dict[d['id']]['device'],
-            gw_serial=aranet_gws_dict[d['id']]['serial']
+            sensor_name=sensor["name"],
+            sensor_id=sensor["id"],
+            pair_date=d["pair"],
+            gw_id=d["id"],
+            gw_name=aranet_gws_dict[d["id"]]["device"],
+            gw_serial=aranet_gws_dict[d["id"]]["serial"]
         )
-        for sensor in aranet_sensors_data['data']['items']
-        if sensor['name'] not in args.ignore
-        for d in sensor['devices']
-        if 'removed' not in d
+        for sensor in aranet_sensors_data["data"]["items"]
+        if sensor["name"] not in args.ignore
+        for d in sensor["devices"]
+        if "removed" not in d
     ]
 
     # Sort sensors by names
@@ -187,10 +190,26 @@ def main():
         ha_aranet_mqtt_main_conf(sensorPairings, f)
 
     # Create statistics configuration file
-    with open(args.stats, "w") as f:
-        ha_aranet_mqtt_stats_conf(
-            sensorPairings, args.stats_list,
-            args.stats_max_hours, args.stats_sampling_size, f)
+    if args.stats is not None:
+        if args.stats_sensors == "*":
+            stats_sensors_pairings = sensorPairings
+        else:
+            stats_sensors_arg = set(ha_aranet_conf.parse_list(args.stats_sensors))
+            stats_sensors_pairings = []
+            for sn in stats_sensors_arg:
+                try:
+                    stats_sensors_pairings.append(
+                        next(x for x in sensorPairings if x.sensor_name == sn))
+                except StopIteration:
+                    print("[WARNING] sensor {} does not exist".format(sn),
+                          file=sys.stderr)
+            stats_sensors_pairings = sorted(stats_sensors_pairings,
+                                            key=lambda x: x.sensor_name)
+
+        with open(args.stats, "w") as f:
+            ha_aranet_mqtt_stats_conf(
+                stats_sensors_pairings, args.stats_list,
+                args.stats_max_hours, args.stats_sampling_size, f)
 
 
 if __name__ == "__main__":
