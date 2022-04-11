@@ -42,8 +42,7 @@ documentation of the available functions.
 
 ### `get_sensors_info`
 
-Get information about a sensor, possibly including the last data and telemetry
-information. Usage:
+Get information about a sensor. Usage:
 
 ```python
 get_sensors_info(
@@ -57,7 +56,7 @@ request. The fields available in the Aranet Cloud are:
 - `devices`: List of base stations to which the sensor is paired.
 - `files`: Number of files stored in the sensor.
 - `integrations`: ?
-- `metrics`: Last data captured by the sensor, e.g., CO2, temperature,
+- `metrics`: Latest data captured by the sensor, e.g., CO2, temperature,
   humidity, pressure.
 - `name`: Name of the sensor.
 - `position`: Localization of the sensor.
@@ -153,7 +152,7 @@ get_sensor_data(
 ```
 
 where
-- `sensor_id` is the sensor id as a `str` or an `int`.
+- `sensor_id` is the sensor ID as a `str` or an `int`.
 - `from_time` is the earliest time of the sensor data, as a `str` in the ISO
   8601 format, for example `2022-01-31T12:00:00Z`. **Note:** currently it seems
   that the Aranet Cloud only allows times in UTC, specified with the timezone
@@ -329,10 +328,10 @@ following:
 This repository includes several exemplary scripts in the `examples` folder.
 These are described below.
 
-### `aranet.py`
+### `aranet_get_latest_data.py`
 
-Queries the Aranet Cloud for the last data of the Aranet4 sensors and it
-returns the data in a JSON format. The script may be called in the following
+Queries the Aranet Cloud for the most recent data of the Aranet4 sensors and
+returns them in a JSON format. The script may be called in the following
 way:
 
 ```bash
@@ -364,7 +363,7 @@ command may be the following:
 
 ### `aranet_get_sensor_list.py`
 
-Queries the Aranet Cloud and returns the list of sensor ids and names in CSV
+Queries the Aranet Cloud and returns the list of sensor IDs and names in CSV
 format. The script may be called in the following way:
 
 ```bash
