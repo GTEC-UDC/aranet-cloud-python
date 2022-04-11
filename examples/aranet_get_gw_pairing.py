@@ -15,8 +15,8 @@ import sys
 
 @dataclasses.dataclass
 class Pairing:
-    name: str
-    id: str
+    sensor_name: str
+    sensor_id: str
     pair_date: str
     gw_id: str
     gw_name: str
@@ -60,8 +60,8 @@ def main():
     for sensor in aranet_sensors_data['data']['items']:
         for d in sensor['devices']:
             kwargs = {
-                'name': sensor['name'],
-                'id': sensor['id'],
+                'sensor_name': sensor['name'],
+                'sensor_id': sensor['id'],
                 'pair_date': d['pair'],
                 'gw_id': d['id'],
                 'gw_name': aranet_gws_dict[d['id']]['device'],
@@ -82,7 +82,7 @@ def main():
     if len(pairings_list) != 0:
         print()
         print(pandas.DataFrame(pairings_list).
-              sort_values(by='name', ignore_index=True).to_string())
+              sort_values(by='sensor_name', ignore_index=True).to_string())
         print()
         print()
 
@@ -90,7 +90,7 @@ def main():
     if len(old_pairings_list) != 0:
         print()
         print(pandas.DataFrame(old_pairings_list).
-              sort_values(by='name', ignore_index=True).to_string())
+              sort_values(by='sensor_name', ignore_index=True).to_string())
 
 
 if __name__ == "__main__":
