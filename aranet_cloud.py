@@ -189,7 +189,7 @@ def get_cloud_space_id(aranet_conf, login_data: Dict[str, Any]) -> str:
 
 def __aranet_cloud_request(func):
     """Decorator function for handling the Aranet Cloud login and login cache.
-    
+
     The decorator will obtain the Aranet Cloud authentication token (by
     making a reequest to the Aranet Cloud or from the cache) and then
     call the function `func`.
@@ -296,7 +296,7 @@ def get_sensors_info(
                                     sensor is paired.
                 - `files`           Number of files stored in the sensor.
                 - `integrations`    ?
-                - `metrics`         Last metrics captured by the sensor,
+                - `metrics`         Latest data captured by the sensor,
                                     e.g., CO2, temperature, humidity, pressure.
                 - `name`            Name of the sensor.
                 - `position`        Localization of the sensor.
