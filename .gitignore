@@ -1,5 +1,6 @@
+.vscode
 __pycache__
 .aranet
 *.conf
 *.json
-.vscode
+*.yaml
