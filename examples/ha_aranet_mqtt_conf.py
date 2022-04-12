@@ -31,10 +31,12 @@ def ha_aranet_mqtt_main_conf(sensorPairings: Collection[SensorPairing],
     def printf(s=""):
         print(s, file=file)
 
+    printf("# " + "-"*77)
     printf("# ARANET SENSORS CONFIGURATION")
-    printf("# DO NOT MODIFY THIS FILE")
-    printf("# THIS FILE HAS BEEN GENERATED WITH THE SCRIPT {}".
-           format(os.path.basename(__file__)))
+    printf("# Do NOT modify this file.")
+    printf("# This file has been generated with {}".format(os.path.basename(__file__)))
+    printf("# https://github.com/tombolano/aranet-cloud-python")
+    printf("# " + "-"*77)
     printf()
     metrics_dict = ha_aranet_conf.ARANET_METRICS_DICT | \
         ha_aranet_conf.ARANET_TELEMETRY_DICT
@@ -58,10 +60,12 @@ def ha_aranet_mqtt_stats_conf(sensorPairings: Collection[SensorPairing],
     def printf(s=""):
         print(s, file=file)
 
+    printf("# " + "-"*77)
     printf("# ARANET STATISTICS CONFIGURATION")
-    printf("# DO NOT MODIFY THIS FILE")
-    printf("# THIS FILE HAS BEEN GENERATED WITH THE SCRIPT {}".
-           format(os.path.basename(__file__)))
+    printf("# Do NOT modify this file.")
+    printf("# This file has been generated with {}".format(os.path.basename(__file__)))
+    printf("# https://github.com/tombolano/aranet-cloud-python")
+    printf("# " + "-"*77)
     printf()
     for s in sensorPairings:
         s_id = s.sensor_name.replace(".", "")

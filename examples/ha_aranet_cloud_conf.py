@@ -18,10 +18,12 @@ def ha_aranet_cloud_main_conf(sensor_names: Collection[str],
     def printf(s=""):
         print(s, file=file)
 
+    printf("# " + "-"*77)
     printf("# ARANET SENSOR CONFIGURATION")
-    printf("# DO NOT MODIFY THIS FILE")
-    printf("# THIS FILE HAS BEEN GENERATED WITH THE SCRIPT {}".
-           format(os.path.basename(__file__)))
+    printf("# Do NOT modify this file.")
+    printf("# This file has been generated with {}".format(os.path.basename(__file__)))
+    printf("# https://github.com/tombolano/aranet-cloud-python")
+    printf("# " + "-"*77)
     printf()
     printf("# Aranet entity")
     printf("# The sensor data is recovered from the command line and set as ")
@@ -44,10 +46,12 @@ def ha_aranet_cloud_templates_conf(sensor_names: Collection[str], file) -> None:
     def printf(s=""):
         print(s, file=file)
 
+    printf("# " + "-"*77)
     printf("# ARANET TEMPLATES CONFIGURATION")
-    printf("# DO NOT MODIFY THIS FILE")
-    printf("# THIS FILE HAS BEEN GENERATED WITH THE SCRIPT {}".
-           format(os.path.basename(__file__)))
+    printf("# Do NOT modify this file.")
+    printf("# This file has been generated with {}".format(os.path.basename(__file__)))
+    printf("# https://github.com/tombolano/aranet-cloud-python")
+    printf("# " + "-"*77)
     printf()
     printf("- sensor:")
     metrics_dict = ha_aranet_conf.ARANET_METRICS_DICT | \
@@ -70,10 +74,12 @@ def ha_aranet_cloud_stats_conf(sensor_names: Collection[str],
     def printf(s=""):
         print(s, file=file)
 
+    printf("# " + "-"*77)
     printf("# ARANET STATISTICS CONFIGURATION")
-    printf("# DO NOT MODIFY THIS FILE")
-    printf("# THIS FILE HAS BEEN GENERATED WITH THE SCRIPT {}".
-           format(os.path.basename(__file__)))
+    printf("# Do NOT modify this file.")
+    printf("# This file has been generated with {}".format(os.path.basename(__file__)))
+    printf("# https://github.com/tombolano/aranet-cloud-python")
+    printf("# " + "-"*77)
     printf()
     for s in sensor_names:
         s_id = s.replace(".", "")
