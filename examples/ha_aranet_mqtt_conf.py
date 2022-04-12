@@ -5,6 +5,7 @@
 
 import aranet_cloud
 import argparse
+from collections.abc import Collection
 import dataclasses
 import os
 import pandas
@@ -15,7 +16,7 @@ import ha_aranet_conf
 
 
 # Class for data of sensor and corresponding base station
-@dataclasses.dataclass
+@dataclasses.dataclass(eq=True, frozen=True)
 class SensorPairing:
     sensor_name: str
     sensor_id: str
@@ -25,7 +26,8 @@ class SensorPairing:
     gw_serial: str
 
 
-def ha_aranet_mqtt_main_conf(sensorPairings: list[SensorPairing], file) -> None:
+def ha_aranet_mqtt_main_conf(sensorPairings: Collection[SensorPairing],
+                             file) -> None:
     def printf(s=""):
         print(s, file=file)
 
@@ -49,9 +51,10 @@ def ha_aranet_mqtt_main_conf(sensorPairings: list[SensorPairing], file) -> None:
             printf()
 
 
-def ha_aranet_mqtt_stats_conf(sensorPairings: list[SensorPairing],
-                              stats: list[str], max_hours: int,
-                              sampling_size: int, file) -> str:
+def ha_aranet_mqtt_stats_conf(sensorPairings: Collection[SensorPairing],
+                              stats: Collection[str],
+                              max_hours: int, sampling_size: int,
+                              file) -> str:
     def printf(s=""):
         print(s, file=file)
 
@@ -194,17 +197,16 @@ def main():
         if args.stats_sensors == "*":
             stats_sensors_pairings = sensorPairings
         else:
-            stats_sensors_arg = set(ha_aranet_conf.parse_list(args.stats_sensors))
-            stats_sensors_pairings = []
-            for sn in stats_sensors_arg:
-                try:
-                    stats_sensors_pairings.append(
-                        next(x for x in sensorPairings if x.sensor_name == sn))
-                except StopIteration:
-                    print("[WARNING] sensor {} does not exist".format(sn),
+            sensor_names_dict = {x.sensor_name: x for x in sensorPairings}
+            stats_sensors_names = set()
+            for sn in set(ha_aranet_conf.parse_list(args.stats_sensors)):
+                if sn in sensor_names_dict:
+                    stats_sensors_names.add(sn)
+                else:
+                    print("[WARNING] sensor \"{}\" does not exist".format(sn),
                           file=sys.stderr)
-            stats_sensors_pairings = sorted(stats_sensors_pairings,
-                                            key=lambda x: x.sensor_name)
+            stats_sensors_pairings = \
+                [sensor_names_dict[x] for x in sorted(stats_sensors_names)]
 
         with open(args.stats, "w") as f:
             ha_aranet_mqtt_stats_conf(

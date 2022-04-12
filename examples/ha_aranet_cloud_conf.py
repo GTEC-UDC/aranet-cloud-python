@@ -5,6 +5,7 @@
 
 import aranet_cloud
 import argparse
+from collections.abc import Collection
 import os
 import pathlib
 import sys
@@ -12,7 +13,8 @@ import sys
 import ha_aranet_conf
 
 
-def ha_aranet_cloud_main_conf(sensors: list[str], program, file) -> None:
+def ha_aranet_cloud_main_conf(sensor_names: Collection[str],
+                              program: str, file) -> None:
     def printf(s=""):
         print(s, file=file)
 
@@ -33,12 +35,12 @@ def ha_aranet_cloud_main_conf(sensors: list[str], program, file) -> None:
     printf("  # we specify a dummy value template")
     printf("  value_template: \"{{ value_json.num_sensors }}\"")
     printf("  json_attributes:")
-    for s in sensors:
+    for s in sensor_names:
         for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
             printf(" "*4 + "- {}_{}".format(s, metric.customName))
 
 
-def ha_aranet_cloud_templates_conf(sensors: list[str], file) -> None:
+def ha_aranet_cloud_templates_conf(sensor_names: Collection[str], file) -> None:
     def printf(s=""):
         print(s, file=file)
 
@@ -50,18 +52,19 @@ def ha_aranet_cloud_templates_conf(sensors: list[str], file) -> None:
     printf("- sensor:")
     metrics_dict = ha_aranet_conf.ARANET_METRICS_DICT | \
         ha_aranet_conf.ARANET_TELEMETRY_DICT
-    for s in sensors:
+    for s in sensor_names:
         for metric in metrics_dict.values():
             printf("  - name: \"Aranet {} {}\"".
                    format(s.replace(".", ""), metric.customName))
             printf("    unit_of_measurement: \"{}\"".format(metric.unit))
             printf("    value_template: "
-                   "\"{{{{ state_attr("sensor.aranet", "{}_{}"}}}}\"".
+                   "\"{{{{ state_attr('sensor.aranet', '{}_{}'}}}}\"".
                    format(s, metric.customName))
             printf()
 
 
-def ha_aranet_cloud_stats_conf(sensors: list[str], stats: list[str],
+def ha_aranet_cloud_stats_conf(sensor_names: Collection[str],
+                               stats: Collection[str],
                                max_hours: int, sampling_size: int,
                                file) -> str:
     def printf(s=""):
@@ -72,7 +75,7 @@ def ha_aranet_cloud_stats_conf(sensors: list[str], stats: list[str],
     printf("# THIS FILE HAS BEEN GENERATED WITH THE SCRIPT {}".
            format(os.path.basename(__file__)))
     printf()
-    for s in sensors:
+    for s in sensor_names:
         s_id = s.replace(".", "")
         for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
             for stat in stats:
@@ -155,10 +158,10 @@ def main():
         aranet_conf, fields=["name"],
         login_cache_file=login_cache_file)
 
-    # get sorted sensor names
+    # get sensor names
     # also filter out sensors indicated in the ignore option
-    sensor_names = sorted([d["name"] for d in aranet_data["data"]["items"]
-                           if d["name"] not in args.ignore])
+    sensor_names = sorted(set(d["name"] for d in aranet_data["data"]["items"]
+                          if d["name"] not in args.ignore))
 
     # Create main configuration file
     with open(args.main, "w") as f:
@@ -173,14 +176,12 @@ def main():
         if args.stats_sensors == "*":
             stats_sensors_names = sensor_names
         else:
-            stats_sensors_arg = set(ha_aranet_conf.parse_list(args.stats_sensors))
-            stats_sensors_names = []
-            for sn in stats_sensors_arg:
-                try:
-                    stats_sensors_names.append(
-                        next(x for x in sensor_names if x == sn))
-                except StopIteration:
-                    print("[WARNING] sensor {} does not exist".format(sn),
+            stats_sensors_names = set()
+            for sn in set(ha_aranet_conf.parse_list(args.stats_sensors)):
+                if sn in sensor_names:
+                    stats_sensors_names.add(sn)
+                else:
+                    print("[WARNING] sensor \"{}\" does not exist".format(sn),
                           file=sys.stderr)
             stats_sensors_names = sorted(stats_sensors_names)
 
