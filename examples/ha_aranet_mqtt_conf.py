@@ -111,7 +111,7 @@ def main():
 
     # Check if files exist
     for f in [args.main, args.stats]:
-        if os.path.exists(f):
+        if f is not None and os.path.exists(f):
             print("File \"{}\" already exists, it will be overwritten".format(f))
             if not ha_aranet_conf.ask_continue():
                 return
