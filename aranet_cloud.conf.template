@@ -1,4 +1,6 @@
 [DEFAULT]
+# endpoint=https://aranet.cloud/api
+login_cache_file=.aranet/login.json
 username=<aranet cloud username>
 password=<aranet cloud password>
 space_name=<aranet cloud space name>

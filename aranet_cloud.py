@@ -18,9 +18,6 @@ import urllib.request
 # Expiration time of the login cache in seconds
 LOGIN_CACHE_EXPIRATION = 595
 
-# Default Aranet Cloud endpoint
-DEFAULT_ENDPOINT = "https://aranet.cloud/api"
-
 
 # Mappings of id to string for the Aranet sensor and telemetry data
 # these can be obtained quering the 'metrics/<space id>' Aranet Cloud API URL
@@ -125,13 +122,12 @@ def login(aranet_conf, cache_file: Optional = None) -> Dict[str, Any]:
             the Aranet Cloud.
     """
     logger.info("Making login request to Aranet Cloud")
-    endpoint = aranet_conf['DEFAULT'].get('endoint', DEFAULT_ENDPOINT)
 
     req = urllib.request.Request(
-        url=endpoint + "/user/login",
+        url=aranet_conf["DEFAULT"]["endpoint"] + "/user/login",
         method="POST", headers={"Content-Type": "application/json"},
-        data=json.dumps({"login": aranet_conf['DEFAULT']['username'],
-                         "passw": aranet_conf['DEFAULT']['password']}).encode())
+        data=json.dumps({"login": aranet_conf["DEFAULT"]["username"],
+                         "passw": aranet_conf["DEFAULT"]["password"]}).encode())
     try:
         with urllib.request.urlopen(req, context=ssl_context) as f:
             data = f.read().decode()
@@ -163,8 +159,8 @@ def get_cloud_space_id(aranet_conf, login_data: Dict[str, Any]) -> str:
         str: The Aranet Cloud space ID corresponding to the space name
             indicated in aranet_conf.
     """
-    space_name = aranet_conf['DEFAULT']['space_name']
-    spaces = login_data['spaces']
+    space_name = aranet_conf["DEFAULT"]["space_name"]
+    spaces = login_data["spaces"]
     if len(spaces) == 0:
         raise Exception("Aranet Cloud spaces list is empty")
     elif len(spaces) == 1:
@@ -197,11 +193,8 @@ def __aranet_cloud_request(func):
     The function `func` must receive an aranet configuration object as its
     first parameter.
 
-    When using this decorator:
-        - The decorated function accepts the additional keyword parameter
-          `login_cache_file`, which indicates the file of the login cache.
-        - `func` will receive the additional keyword parameters
-          `cloud_space_id`, `auth_token`, and `endpoint`.
+    When using this decorator `func` will receive the additional keyword
+    parameters `cloud_space_id` and `auth_token`
 
     Args:
         func (function): Function to call.
@@ -211,7 +204,7 @@ def __aranet_cloud_request(func):
     """
 
     def do_request(aranet_conf, *args, **kwargs):
-        login_cache_file = kwargs.pop('login_cache_file', None)
+        login_cache_file = aranet_conf["DEFAULT"].get("login_cache_file")
 
         try:
             login_data = get_login_data(login_cache_file)
@@ -223,8 +216,7 @@ def __aranet_cloud_request(func):
 
         func_kwargs = {
             'cloud_space_id': get_cloud_space_id(aranet_conf, login_data),
-            'auth_token': login_data['auth'],
-            'endpoint': aranet_conf['DEFAULT'].get('endoint', DEFAULT_ENDPOINT)
+            'auth_token': login_data["auth"]
         }
 
         try:
@@ -316,7 +308,8 @@ def get_sensors_info(
     Returns:
         Dict[str, Any]: A Dict with the contents of the response.
     """
-    return kwargs['endpoint'] + "/sensors/" + kwargs['cloud_space_id'] + \
+    return aranet_conf["DEFAULT"]["endpoint"] + \
+        "/sensors/" + kwargs['cloud_space_id'] + \
         "?fields=" + ','.join(fields)
 
 
@@ -348,7 +341,8 @@ def get_sensor_data(
                 "data to Aranet Cloud")
 
     aranet_query_url = \
-        kwargs['endpoint'] + "/sensors/" + kwargs['cloud_space_id'] + \
+        aranet_conf["DEFAULT"]["endpoint"] + \
+        "/sensors/" + kwargs['cloud_space_id'] + \
         "/sensor/" + str(sensor_id) + "/export?" + \
         "metric=" + ",".join(metrics) + \
         "&from=" + from_time + \
@@ -358,7 +352,7 @@ def get_sensor_data(
     req = urllib.request.Request(
         url=aranet_query_url,
         method="GET",
-        headers={"Authorization": "Bearer " + kwargs['auth_token']})
+        headers={"Authorization": "Bearer " + kwargs["auth_token"]})
 
     try:
         with urllib.request.urlopen(req, context=ssl_context) as f:
@@ -386,7 +380,8 @@ def get_metrics(aranet_conf, **kwargs) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A Dict with the contents of the response.
     """
-    return kwargs['endpoint'] + "/metrics/" + kwargs['cloud_space_id']
+    return aranet_conf["DEFAULT"]["endpoint"] + \
+        "/metrics/" + kwargs["cloud_space_id"]
 
 
 @__aranet_cloud_request_json
@@ -403,8 +398,8 @@ def get_rules(aranet_conf, **kwargs) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A Dict with the contents of the response.
     """
-    return kwargs['endpoint'] + "/alarms/" + kwargs['cloud_space_id'] + \
-        "/rules"
+    return aranet_conf["DEFAULT"]["endpoint"] + \
+        "/alarms/" + kwargs["cloud_space_id"] + "/rules"
 
 
 @__aranet_cloud_request_json
@@ -421,7 +416,8 @@ def get_gateways(aranet_conf, **kwargs) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: A Dict with the contents of the response.
     """
-    return kwargs['endpoint'] + "/gateways/" + kwargs['cloud_space_id']
+    return aranet_conf["DEFAULT"]["endpoint"] + \
+        "/gateways/" + kwargs["cloud_space_id"]
 
 
 def read_aranet_conf(file):
@@ -435,7 +431,12 @@ def read_aranet_conf(file):
         [configparser.ConfigParser]: A ConfigParser object with the
             configuration.
     """
-    aranet_conf = configparser.ConfigParser()
+    aranet_conf = configparser.ConfigParser(
+        defaults={
+            "endpoint": "https://aranet.cloud/api"
+        }
+    )
+
     with open(file) as f:
         aranet_conf.read_file(f)
     return aranet_conf
