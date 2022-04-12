@@ -11,6 +11,7 @@ import os
 import pandas
 import pathlib
 import sys
+import yaml
 
 import ha_aranet_conf
 
@@ -38,19 +39,25 @@ def ha_aranet_mqtt_main_conf(sensorPairings: Collection[SensorPairing],
     printf("# https://github.com/tombolano/aranet-cloud-python")
     printf("# " + "-"*77)
     printf()
+
     metrics_dict = ha_aranet_conf.ARANET_METRICS_DICT | \
         ha_aranet_conf.ARANET_TELEMETRY_DICT
-    for s in sensorPairings:
-        for metric in metrics_dict.values():
-            printf("- platform: mqtt")
-            printf("  name: \"Aranet {} {}\"".format(
-                   s.sensor_name.replace(".", ""), metric.customName))
-            printf("  unit_of_measurement: \"{}\"".format(metric.unit))
-            printf("  state_topic: \"Aranet/{}/sensors/{:X}/json/measurements\"".
-                   format(s.gw_serial, int(s.sensor_id)))
-            printf("  value_template: \"{{{{ value_json.{} }}}}\"".format(
-                   metric.aranetName))
-            printf()
+
+    main_conf = [
+        {
+            "platform": "mqtt",
+            "name": "Aranet {} {}".
+                    format(s.sensor_name.replace(".", ""), m.customName),
+            "unit_of_measurement": m.unit,
+            "state_topic": "Aranet/{}/sensors/{:X}/json/measurements".
+                           format(s.gw_serial, int(s.sensor_id)),
+            "value_template": "{{{{ value_json.{} }}}}".format(m.aranetName)
+        }
+        for s in sensorPairings
+        for m in metrics_dict.values()
+    ]
+
+    yaml.dump(main_conf, file, sort_keys=False, allow_unicode=True)
 
 
 def ha_aranet_mqtt_stats_conf(sensorPairings: Collection[SensorPairing],
@@ -67,20 +74,25 @@ def ha_aranet_mqtt_stats_conf(sensorPairings: Collection[SensorPairing],
     printf("# https://github.com/tombolano/aranet-cloud-python")
     printf("# " + "-"*77)
     printf()
-    for s in sensorPairings:
-        s_id = s.sensor_name.replace(".", "")
-        for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
-            for stat in stats:
-                printf("- platform: statistics")
-                printf("  name: \"Aranet {} {} stats {}\"".
-                       format(s_id, metric.customName, stat))
-                printf("  entity_id: sensor.aranet_{}_{}".
-                       format(s_id, metric.customName.lower()))
-                printf("  state_characteristic: \"{}\"".format(stat))
-                printf("  sampling_size: {}".format(sampling_size))
-                printf("  max_age:")
-                printf("    hours: {}".format(max_hours))
-                printf()
+
+    stats_conf = [
+        {
+            "platform": "statistics",
+            "name": "Aranet {} {} stats {}".
+                    format((sid := s.sensor_name.replace(".", "")),
+                           m.customName, stat),
+            "entity_id": "sensor.aranet_{}_{}".
+                         format(sid, m.customName.lower()),
+            "state_characteristic": stat,
+            "sampling_size": sampling_size,
+            "max_age": {"hours": max_hours}
+        }
+        for s in sensorPairings
+        for m in ha_aranet_conf.ARANET_METRICS_DICT.values()
+        for stat in stats
+    ]
+
+    yaml.dump(stats_conf, file, sort_keys=False, allow_unicode=True)
 
 
 def main():

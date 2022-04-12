@@ -9,6 +9,7 @@ from collections.abc import Collection
 import os
 import pathlib
 import sys
+import yaml
 
 import ha_aranet_conf
 
@@ -28,18 +29,22 @@ def ha_aranet_cloud_main_conf(sensor_names: Collection[str],
     printf("# Aranet entity")
     printf("# The sensor data is recovered from the command line and set as ")
     printf("# attributes of the \"aranet\" entity")
-    printf()
-    printf("- platform: command_line")
-    printf("  command: \"{}\"".format(program))
-    printf("  name: \"aranet\"")
-    printf("  scan_interval: 60")
-    printf("  command_timeout: 30")
-    printf("  # we specify a dummy value template")
-    printf("  value_template: \"{{ value_json.num_sensors }}\"")
-    printf("  json_attributes:")
-    for s in sensor_names:
-        for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
-            printf(" "*4 + "- {}_{}".format(s, metric.customName))
+
+    main_conf = {
+        "platform": "command_line",
+        "command": program,
+        "name": "aranet",
+        "scan_interval": 60,
+        "command_timeout": 30,
+        "value_template": "{{ value_json.num_sensors }}",
+        "json_attributes": [
+            "{}_{}".format(s, m.customName)
+            for s in sensor_names
+            for m in ha_aranet_conf.ARANET_METRICS_DICT.values()
+        ]
+    }
+
+    yaml.dump([main_conf], file, sort_keys=False, allow_unicode=True)
 
 
 def ha_aranet_cloud_templates_conf(sensor_names: Collection[str], file) -> None:
@@ -53,18 +58,22 @@ def ha_aranet_cloud_templates_conf(sensor_names: Collection[str], file) -> None:
     printf("# https://github.com/tombolano/aranet-cloud-python")
     printf("# " + "-"*77)
     printf()
-    printf("- sensor:")
+
     metrics_dict = ha_aranet_conf.ARANET_METRICS_DICT | \
         ha_aranet_conf.ARANET_TELEMETRY_DICT
-    for s in sensor_names:
-        for metric in metrics_dict.values():
-            printf("  - name: \"Aranet {} {}\"".
-                   format(s.replace(".", ""), metric.customName))
-            printf("    unit_of_measurement: \"{}\"".format(metric.unit))
-            printf("    value_template: "
-                   "\"{{{{ state_attr('sensor.aranet', '{}_{}'}}}}\"".
-                   format(s, metric.customName))
-            printf()
+
+    templ_conf = [
+        {
+            "name": "Aranet {} {}".format(s.replace(".", ""), m.customName),
+            "unit_of_measurement": m.unit,
+            "value_template": "{{{{ state_attr('sensor.aranet', '{}_{}'}}}}".
+                              format(s, m.customName)
+        }
+        for s in sensor_names for m in metrics_dict.values()
+    ]
+
+    yaml.dump([{"sensor": templ_conf}], file,
+              sort_keys=False, allow_unicode=True)
 
 
 def ha_aranet_cloud_stats_conf(sensor_names: Collection[str],
@@ -81,20 +90,24 @@ def ha_aranet_cloud_stats_conf(sensor_names: Collection[str],
     printf("# https://github.com/tombolano/aranet-cloud-python")
     printf("# " + "-"*77)
     printf()
-    for s in sensor_names:
-        s_id = s.replace(".", "")
-        for metric in ha_aranet_conf.ARANET_METRICS_DICT.values():
-            for stat in stats:
-                printf("- platform: statistics")
-                printf("  name: \"Aranet {} {} stats {}\"".
-                       format(s_id, metric.customName, stat))
-                printf("  entity_id: sensor.aranet_{}_{}".
-                       format(s_id, metric.customName.lower()))
-                printf("  state_characteristic: \"{}\"".format(stat))
-                printf("  sampling_size: {}".format(sampling_size))
-                printf("  max_age:")
-                printf("    hours: {}".format(max_hours))
-                printf()
+
+    stats_conf = [
+        {
+            "platform": "statistics",
+            "name": "Aranet {} {} stats {}".
+                    format((sid := s.replace(".", "")), m.customName, stat),
+            "entity_id": "sensor.aranet_{}_{}".
+                         format(sid, m.customName.lower()),
+            "state_characteristic": stat,
+            "sampling_size": sampling_size,
+            "max_age": {"hours": max_hours}
+        }
+        for s in sensor_names
+        for m in ha_aranet_conf.ARANET_METRICS_DICT.values()
+        for stat in stats
+    ]
+
+    yaml.dump(stats_conf, file, sort_keys=False, allow_unicode=True)
 
 
 def main():
