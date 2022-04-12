@@ -78,9 +78,9 @@ def ha_aranet_mqtt_stats_conf(sensorPairings: Collection[SensorPairing],
     stats_conf = [
         {
             "platform": "statistics",
-            "name": "Aranet {} {} stats {}".
-                    format((sid := s.sensor_name.replace(".", "")),
-                           m.customName, stat),
+            "name": "Stats {} Aranet {} {}".
+                    format(stat, (sid := s.sensor_name.replace(".", "")),
+                           m.customName),
             "entity_id": "sensor.aranet_{}_{}".
                          format(sid, m.customName.lower()),
             "state_characteristic": stat,

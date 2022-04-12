@@ -94,8 +94,8 @@ def ha_aranet_cloud_stats_conf(sensor_names: Collection[str],
     stats_conf = [
         {
             "platform": "statistics",
-            "name": "Aranet {} {} stats {}".
-                    format((sid := s.replace(".", "")), m.customName, stat),
+            "name": "Stats {} Aranet {} {}".
+                    format(stat, (sid := s.replace(".", "")), m.customName),
             "entity_id": "sensor.aranet_{}_{}".
                          format(sid, m.customName.lower()),
             "state_characteristic": stat,
