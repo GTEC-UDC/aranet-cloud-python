@@ -6,37 +6,36 @@ Cloud](https://aranet.cloud).
 
 ## Usage
 
-First, import the module
-
+After loading the module with
 ```python
 import aranet_cloud
 ```
+a configuration object is needed to call the module functions. This
+configuration object will store the credentials to the Aranet Cloud as well as
+some other parameters.
 
-For querying the Aranet Cloud, a configuration file with the Aranet Cloud
-access credentials is needed, for this the template file
-`aranet_cloud.conf.template` is included. Copy the file
-`aranet_cloud.conf.template` to a new file `aranet_cloud.conf` and put the
-appropriate data in the fields `username`, `password`, and `space_name`. Then
-load the file with the following code:
-
+The configuration object is a
+[ConfigParser](https://docs.python.org/3/library/configparser.html) object
+which may be created from a configuration file with the `read_aranet_conf`
+function, e.g.:
 ```python
 aranet_conf = aranet_cloud.read_aranet_conf("aranet_cloud.conf")
 ```
 
-To make the data request to the Aranet Cloud, first a login request is needed,
-this will return a JSON data containing the access token to be used in the data
-requests. The access token can be stored in a cache file to be used for later
-requests, for this define a name for the cache file and use it when calling the
-request functions.
+A template for this configuration file is included in this repository in the
+file `aranet_cloud.conf.template` (see the following section for a description of the available settings)
 
-```python
-login_cache_file = "aranet_login.json"
-```
 
-The functions that query the Aranet Cloud receive the `aranet_conf` object as
-the first parameter, and they accept the keyword parameter `login_cache_file`
-to indicate the file of the login cache. See the section below for the
-documentation of the available functions.
+## Configuration file
+
+The configuration file admits the following settings in the `DEFAULT` section:
+
+- `endpoint`: endpoint of the Aranet Cloud, default value: https://aranet.cloud/.api
+- `login_cache_file`: File to store the login information for reuse. If not provided each data request will need to do first a login request.
+- `password`: Aranet Cloud password for the user.
+- `username`: Aranet Cloud username.
+- `space_name`: The organization name set in the Aranet Cloud.
+
 
 ## Aranet Cloud Query Functions
 
@@ -170,8 +169,7 @@ For example,
 
 ```python
 df = aranet_cloud.get_sensor_data(
-    aranet_conf, 4196648, '2022-02-01T12:00:00Z', '2022-02-01T12:20:00Z', 
-    login_cache_file=login_cache_file)
+    aranet_conf, 4196648, '2022-02-01T12:00:00Z', '2022-02-01T12:20:00Z')
 print(df.to_string())
 ```
 
