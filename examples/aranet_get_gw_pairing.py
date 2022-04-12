@@ -41,16 +41,10 @@ def main():
     aranet_conf = aranet_cloud.read_aranet_conf(
         script_path / "aranet_cloud.conf")
 
-    # Aranet Cloud login cache file
-    login_cache_file = data_folder / "aranet_login.json"
-    # login_cache_file = None  # disable cache
-
     aranet_sensors_data = aranet_cloud.get_sensors_info(
-        aranet_conf, fields=["name", "devices"],
-        login_cache_file=login_cache_file)
+        aranet_conf, fields=["name", "devices"])
 
-    aranet_gws_data = aranet_cloud.get_gateways(
-        aranet_conf, login_cache_file=login_cache_file)
+    aranet_gws_data = aranet_cloud.get_gateways(aranet_conf)
 
     aranet_gws_dict = {x['id']: x for x in aranet_gws_data['devices']}
 

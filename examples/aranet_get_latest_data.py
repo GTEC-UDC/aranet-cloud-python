@@ -62,12 +62,7 @@ def main():
     # load Aranet Cloud configuration
     aranet_conf = aranet_cloud.read_aranet_conf(script_path / "aranet_cloud.conf")
 
-    # Aranet Cloud login cache file
-    login_cache_file = data_folder / "aranet_login.json"
-    # login_cache_file = None  # disable login cache
-
-    aranet_data = aranet_cloud.get_sensors_info(
-        aranet_conf, login_cache_file=login_cache_file)
+    aranet_data = aranet_cloud.get_sensors_info(aranet_conf)
 
     # print(aranet_data)
     print(json.dumps(aranet_extract_data(aranet_data)))
