@@ -66,8 +66,8 @@ def ha_aranet_cloud_templates_conf(sensor_names: Collection[str], file) -> None:
         {
             "name": "Aranet {} {}".format(s.replace(".", ""), m.customName),
             "unit_of_measurement": m.unit,
-            "value_template": "{{{{ state_attr('sensor.aranet', '{}_{}'}}}}".
-                              format(s, m.customName)
+            "state": "{{{{ state_attr('sensor.aranet', '{}_{}'}}}}".
+                     format(s, m.customName)
         }
         for s in sensor_names for m in metrics_dict.values()
     ]
